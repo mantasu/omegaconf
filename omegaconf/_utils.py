@@ -720,12 +720,9 @@ def get_dict_key_value_types(ref_type: Any) -> Tuple[Any, Any]:
     args = getattr(ref_type, "__args__", None)
     if args is None:
         for base in getattr(ref_type, "__orig_bases__", tuple()):
-            try:
-                if issubclass(get_origin(base), get_origin(Generic)):
-                    args = getattr(base, "__args__", None)
-                    break
-            except TypeError:
-                pass
+            if issubclass(get_origin(base), Generic):
+                args = getattr(base, "__args__", None)
+                break
 
     key_type: Any
     element_type: Any
