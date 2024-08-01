@@ -8,7 +8,18 @@ import types
 import warnings
 from enum import Enum
 from textwrap import dedent
-from typing import Any, Dict, List, Optional, Tuple, Type, Union, get_type_hints
+from typing import (
+    Any,
+    Dict,
+    Generic,
+    List,
+    Optional,
+    Tuple,
+    Type,
+    Union,
+    get_origin,
+    get_type_hints,
+)
 
 import yaml
 
@@ -708,9 +719,13 @@ def get_tuple_item_types(ref_type: Type[Any]) -> Tuple[Any, ...]:
 def get_dict_key_value_types(ref_type: Any) -> Tuple[Any, Any]:
     args = getattr(ref_type, "__args__", None)
     if args is None:
-        bases = getattr(ref_type, "__orig_bases__", None)
-        if bases is not None and len(bases) > 0:
-            args = getattr(bases[0], "__args__", None)
+        for base in getattr(ref_type, "__orig_bases__", tuple()):
+            try:
+                if issubclass(get_origin(base), get_origin(Generic)):
+                    args = getattr(base, "__args__", None)
+                    break
+            except TypeError:
+                pass
 
     key_type: Any
     element_type: Any
